@@ -50,9 +50,16 @@
 ;;   (package-refresh-contents))
 
 ;; Initialize use-package on non-Linux platforms
-(unless (or (package-installed-p 'use-package)
-            dw/is-guix-system)
-   (package-install 'use-package))
+;; (unless (or (package-installed-p 'use-package)
+;;            dw/is-guix-system)
+
+;; If use-package isn't already installed, it's extremely likely that this is a
+;; fresh installation! So we'll want to update the package repository and
+;; install use-package before loading the literate configuration.
+(when (not (package-installed-p 'use-package))
+  (package-refresh-contents)
+  (package-install 'use-package))
+
 (require 'use-package)
 
 ;; Uncomment this to get a reading on packages that get loaded at startup
@@ -372,6 +379,7 @@
     ("Asia/Shanghai" "Shanghai")))
 (setq display-time-world-time-format "%a, %d %b %I:%M %p %Z")
 
+(use-package pinentry)
 (unless dw/is-termux
   (setq epa-pinentry-mode 'loopback)
   (pinentry-start))
@@ -480,13 +488,25 @@
   :defer t
   :after hydra)
 
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         ("C-M-l" . counsel-imenu)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :custom
+  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+  :config
+  (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
+
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1)
   :config
   (setq ivy-format-function #'ivy-format-function-line)
-  (setq ivy-rich--display-transformers-list
-        (plist-put ivy-rich--display-transformers-list
+  (setq ivy-rich-display-transformers-list
+        (plist-put ivy-rich-display-transformers-list
                    'ivy-switch-buffer
                    '(:columns
                      ((ivy-rich-candidate (:width 40))
@@ -500,18 +520,6 @@
                            ;; Don't mess with EXWM buffers
                            (with-current-buffer buffer
                              (not (derived-mode-p 'exwm-mode)))))))))
-
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         ("C-M-l" . counsel-imenu)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :custom
-  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
-  :config
-  (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
 
 (use-package flx  ;; Improves sorting for fuzzy-matched results
   :defer t
@@ -1326,6 +1334,7 @@
           (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
           (setq xref-show-definitions-function #'ivy-xref-show-defs)))
 
+(use-package git-gutter-fringe)
 (use-package lsp-mode
   :commands lsp
   :hook ((typescript-mode js2-mode web-mode) . lsp)
@@ -1392,8 +1401,8 @@
   :mode "\\.lisp\\'")
 
 ;; Include .sld library definition files
-(use-package scheme-mode
-  :mode "\\.sld\\'")
+;; (use-package scheme-mode
+;;  :mode "\\.sld\\'")
 
 (use-package nvm
   :defer t)
@@ -1466,14 +1475,14 @@
   ;; :bind (:map geiser-mode-map
   ;;        ("TAB" . completion-at-point))
 
-(use-package geiser
-  :ensure t
-  :config
-  (setq geiser-default-implementation 'gambit)
-  (setq geiser-active-implementations '(gambit guile))
-  (setq geiser-repl-default-port 44555) ; For Gambit Scheme
-  (setq geiser-implementations-alist '(((regexp "\\.scm$") gambit)
-                                       ((regexp "\\.sld") gambit))))
+;; (use-package geiser
+;;   :ensure t
+;;   :config
+;;   (setq geiser-default-implementation 'gambit)
+;;   (setq geiser-active-implementations '(gambit guile))
+;;   (setq geiser-repl-default-port 44555) ; For Gambit Scheme
+;;   (setq geiser-implementations-alist '(((regexp "\\.scm$") gambit)
+;;                                        ((regexp "\\.sld") gambit))))
 
 (use-package zig-mode
   :after lsp-mode
@@ -1523,6 +1532,8 @@
 (use-package yaml-mode
   :mode "\\.ya?ml\\'")
 
+;; flycheck mode has to be manually installed here. this seems a
+;; circular dependency for me.
 (use-package flycheck
   :defer t
   :hook (lsp-mode . flycheck-mode))
@@ -1620,10 +1631,11 @@
 (setq dw/mail-enabled (string-equal system-name "zerocool"))
 
 (use-package mu4e
-  :if (and (eq system-type 'gnu/linux) dw/mail-enabled)
+  ;;:if (and (eq system-type 'gnu/linux) dw/mail-enabled)
+	:load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"
   :config
   ;; After building/installing mu4e the .el files are here:
-  ;;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e") ;; On Fedora
+  ;;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp") ;; On Fedora
   ;;(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e") ;; On Manjaro / Arch
 
   (require 'org-mu4e)
