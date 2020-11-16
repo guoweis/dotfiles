@@ -33,6 +33,11 @@
         (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
 (load custom-file t)
 
+(defun hrs/append-to-path (path)
+  "Add a path both to the $PATH variable and to Emacs' exec-path."
+  (setenv "PATH" (concat (getenv "PATH") ":" path))
+  (add-to-list 'exec-path path))
+
 ;; Initialize package sources
 (require 'package)
 
@@ -1306,8 +1311,8 @@
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :init
-  (when (file-directory-p "~/Projects/Code")
-    (setq projectile-project-search-path '("~/Projects/Code")))
+  (when (file-directory-p "~/code")
+    (setq projectile-project-search-path '("~/code")))
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
@@ -1326,7 +1331,7 @@
             (projectile-project-compilation-dir . nil)
             (projectile-project-compilation-cmd . "script/build")))))
 
-(dir-locals-set-directory-class (expand-file-name "~/Projects/Code/atom") 'Atom)
+(dir-locals-set-directory-class (expand-file-name "~/code/atom") 'Atom)
 
 (use-package ivy-xref
   :init (if (< emacs-major-version 27)
@@ -1467,18 +1472,6 @@
   :keymaps '(visual)
   "er" '(eval-region :which-key "eval region"))
 
-(use-package zig-mode
-  :after lsp-mode
-  :ensure t
-  :config
-  (require 'lsp)
-  (add-to-list 'lsp-language-id-configuration '(zig-mode . "zig"))
-  (lsp-register-client
-    (make-lsp-client
-      :new-connection (lsp-stdio-connection "~/Projects/Code/zls/zig-cache/bin/zls")
-      :major-modes '(zig-mode)
-      :server-id 'zls)))
-
 (use-package markdown-mode
   :pin melpa-stable
   :mode "\\.md\\'"
@@ -1514,6 +1507,29 @@
 
 (use-package yaml-mode
   :mode "\\.ya?ml\\'")
+
+(setenv "GO111MODULE" "on")
+
+(setenv "GOPATH" "/Users/guoweishieh/code/go")
+(hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
+
+(use-package go-mode
+  :defer t
+  :ensure t
+  :mode ("\\.go\\'" . go-mode)
+  :init
+  (setq compile-command "echo Building... && go build -v && echo Testing... && go test -v && echo Linter... && golint")
+  (setq compilation-read-command nil)
+  :bind (("M-," . compile)
+         ("M-." . godef-jump)))
+
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+(setq lsp-go-gopls-server-args '("-remote" "127.0.0.1:9999"))
 
 ;; flycheck mode has to be manually installed here. this seems a
 ;; circular dependency for me.
@@ -1632,8 +1648,8 @@
             :match-func (lambda (msg) (when msg
                                         (string-prefix-p "/Fastmail" (mu4e-message-field msg :maildir))))
             :vars '(
-                    (user-full-name . "David Wilson")
-                    (user-mail-address . "david@daviwil.com")
+                    (user-full-name . "Guowei Shieh")
+                    (user-mail-address . "guoweis@gmail.com")
                     (mu4e-sent-folder . "/Fastmail/Sent Items")
                     (mu4e-trash-folder . "/Fastmail/Trash")
                     (mu4e-drafts-folder . "/Fastmail/Drafts")

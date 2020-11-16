@@ -11,6 +11,7 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 - [[#startup-performance][Startup Performance]]
 - [[#system-settings][System Settings]]
 - [[#keep-emacsd-clean][Keep .emacs.d Clean]]
+- [[#copied-from-hrs-dotfils][Copied from hrs-dotfils]]
 - [[#package-management][Package Management]]
 - [[#update-load-path][Update Load Path]]
 - [[#helper-functions][Helper Functions]]
@@ -113,10 +114,10 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
     - [[#ocaml][OCaml]]
     - [[#f][F#]]
     - [[#emacs-lisp][Emacs Lisp]]
-    - [[#zig][Zig]]
     - [[#markdown][Markdown]]
     - [[#html][HTML]]
     - [[#yaml][YAML]]
+    - [[#go][Go]]
   - [[#productivity][Productivity]]
     - [[#syntax-checking-with-flycheck][Syntax checking with Flycheck]]
     - [[#snippets][Snippets]]
@@ -231,6 +232,14 @@ I don't want a bunch of transient files showing up as untracked in the Git repo 
         (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
 (load custom-file t)
 
+#+end_src
+
+* Copied from hrs-dotfils
+#+begin_src emacs-lisp
+  (defun hrs/append-to-path (path)
+    "Add a path both to the $PATH variable and to Emacs' exec-path."
+    (setenv "PATH" (concat (getenv "PATH") ":" path))
+    (add-to-list 'exec-path path))
 #+end_src
 
 * Package Management
@@ -2425,8 +2434,8 @@ files contained within the repo.  More information at the [[https://github.com/a
     :bind-keymap
     ("C-c p" . projectile-command-map)
     :init
-    (when (file-directory-p "~/Projects/Code")
-      (setq projectile-project-search-path '("~/Projects/Code")))
+    (when (file-directory-p "~/code")
+      (setq projectile-project-search-path '("~/code")))
     (setq projectile-switch-project-action #'projectile-dired))
 
   (use-package counsel-projectile
@@ -2466,7 +2475,7 @@ the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Directory-Local-
               (projectile-project-compilation-dir . nil)
               (projectile-project-compilation-cmd . "script/build")))))
 
-  (dir-locals-set-directory-class (expand-file-name "~/Projects/Code/atom") 'Atom)
+  (dir-locals-set-directory-class (expand-file-name "~/code/atom") 'Atom)
 
 #+end_src
 
@@ -2756,24 +2765,6 @@ Configure TypeScript and JavaScript language modes
 
 #+end_src
 
-*** Zig
-
-#+begin_src emacs-lisp
-
-(use-package zig-mode
-  :after lsp-mode
-  :ensure t
-  :config
-  (require 'lsp)
-  (add-to-list 'lsp-language-id-configuration '(zig-mode . "zig"))
-  (lsp-register-client
-    (make-lsp-client
-      :new-connection (lsp-stdio-connection "~/Projects/Code/zls/zig-cache/bin/zls")
-      :major-modes '(zig-mode)
-      :server-id 'zls)))
-
-#+end_src
-
 *** Markdown
 
 #+begin_src emacs-lisp
@@ -2852,6 +2843,32 @@ Configure TypeScript and JavaScript language modes
 
 #+end_src
 
+*** Go
+#+begin_src emacs-lisp
+
+  (setenv "GO111MODULE" "on")
+
+  (setenv "GOPATH" "/Users/guoweishieh/code/go")
+  (hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
+
+  (use-package go-mode
+    :defer t
+    :ensure t
+    :mode ("\\.go\\'" . go-mode)
+    :init
+    (setq compile-command "echo Building... && go build -v && echo Testing... && go test -v && echo Linter... && golint")
+    (setq compilation-read-command nil)
+    :bind (("M-," . compile)
+           ("M-." . godef-jump)))
+
+  (defun lsp-go-install-save-hooks ()
+    (add-hook 'before-save-hook #'lsp-format-buffer t t)
+    (add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+  (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+  (setq lsp-go-gopls-server-args '("-remote" "127.0.0.1:9999"))
+#+end_src
 ** Productivity
 
 *** Syntax checking with Flycheck
@@ -3116,8 +3133,8 @@ to capture links to emails with org-mode too.
             :match-func (lambda (msg) (when msg
                                         (string-prefix-p "/Fastmail" (mu4e-message-field msg :maildir))))
             :vars '(
-                    (user-full-name . "David Wilson")
-                    (user-mail-address . "david@daviwil.com")
+                    (user-full-name . "Guowei Shieh")
+                    (user-mail-address . "guoweis@gmail.com")
                     (mu4e-sent-folder . "/Fastmail/Sent Items")
                     (mu4e-trash-folder . "/Fastmail/Trash")
                     (mu4e-drafts-folder . "/Fastmail/Drafts")
