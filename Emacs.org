@@ -170,6 +170,8 @@ This is an ongoing evolution of my original Emacs configuration files, inspired 
 - [[#runtime-performance][Runtime Performance]]
 - [[#emacs-profile][Emacs Profile]]
 - [[#inspiration][Inspiration]]
+- [[#fixup][Fixup]]
+  - [[#dired-mode][Dired mode]]
 :END:
 
 * Startup Performance
@@ -560,8 +562,8 @@ Set frame transparency and maximize windows by default.
 #+begin_src emacs-lisp
 
   (unless dw/is-termux
-    (set-frame-parameter (selected-frame) 'alpha '(90 . 90))
-    (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
+    (set-frame-parameter (selected-frame) 'alpha '(100 . 100))
+    (add-to-list 'default-frame-alist '(alpha . (100 . 100)))
     (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
     (add-to-list 'default-frame-alist '(fullscreen . maximized)))
 
@@ -620,7 +622,7 @@ A nice gallery of Emacs themes can be found at https://emacsthemes.com/.
 (use-package spacegray-theme :defer t)
 (use-package doom-themes :defer t)
 (unless dw/is-termux
-  (load-theme 'doom-palenight t)
+  (load-theme 'doom-gruvbox t)
   (doom-themes-visual-bell-config))
 
 #+end_src
@@ -646,14 +648,14 @@ Different platforms need different default font sizes, and
   ;; Set the font face based on platform
   (on-platform-do
    ((windows cygwin) (set-face-attribute 'default nil :font "Fira Mono:antialias=subpixel" :height 130))
-    (osx (set-face-attribute 'default nil :font "Fira Mono" :height 170))
+    (osx (set-face-attribute 'default nil :font "Fira Code Retina" :height 170))
     (linux (set-face-attribute 'default nil :font "Fira Code Retina" :height 220)))
 
   ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 200)
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 170)
 
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 245 :weight 'regular)
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 170 :weight 'regular)
 
 #+end_src
 
@@ -1363,7 +1365,7 @@ The keybindings for this are =C+M+-= and =C+M+==.
 ;;     (set-window-margins nil margin-size margin-size)))
 
 (defun dw/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 150
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
@@ -1441,13 +1443,15 @@ I use [[https://www.passwordstore.org/][pass]] to manage all of my passwords loc
 ** Dired
 
 #+begin_src emacs-lisp
+  (when (string= system-type "darwin")       
+    (setq dired-use-ls-dired nil))
 
   (use-package dired
     :ensure nil
     :defer 1
     :commands (dired dired-jump)
     :config
-    (setq dired-listing-switches "-agho --group-directories-first"
+    (setq dired-listing-switches "-lhvA --group-directories-first"
           dired-omit-files "^\\.[^.].*"
           dired-omit-verbose nil)
 
@@ -4022,3 +4026,12 @@ Other dotfiles repos and blog posts for inspiration:
 - [[https://github.com/dakrone/dakrone-dotfiles][dakrone's dotfiles]]
 - [[https://github.com/jinnovation/dotemacs][jinnovation dotemacs]]
 - [[https://writequit.org/org/][writequit's config]]
+* Fixup
+** Dired mode
+I don't know why this is not working. But it seems adding this line helps
+#+begin_src emacs-lisp
+
+;; need this to make dired mode work on directory
+(setq-default dired-listing-switches "-lhvA")
+
+#+end_src

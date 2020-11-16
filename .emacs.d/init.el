@@ -201,8 +201,8 @@
   (setq scroll-step 1)) ;; keyboard scroll one line at a timesetq use-dialog-box nil) ; Disable dialog boxes since they weren't working in Mac OSX
 
 (unless dw/is-termux
-  (set-frame-parameter (selected-frame) 'alpha '(90 . 90))
-  (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
+  (set-frame-parameter (selected-frame) 'alpha '(100 . 100))
+  (add-to-list 'default-frame-alist '(alpha . (100 . 100)))
   (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
   (add-to-list 'default-frame-alist '(fullscreen . maximized)))
 
@@ -227,20 +227,20 @@
 (use-package spacegray-theme :defer t)
 (use-package doom-themes :defer t)
 (unless dw/is-termux
-  (load-theme 'doom-palenight t)
+  (load-theme 'doom-gruvbox t)
   (doom-themes-visual-bell-config))
 
 ;; Set the font face based on platform
 (on-platform-do
  ((windows cygwin) (set-face-attribute 'default nil :font "Fira Mono:antialias=subpixel" :height 130))
-  (osx (set-face-attribute 'default nil :font "Fira Mono" :height 170))
+  (osx (set-face-attribute 'default nil :font "Fira Code Retina" :height 170))
   (linux (set-face-attribute 'default nil :font "Fira Code Retina" :height 220)))
 
 ;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 200)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 170)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 245 :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 170 :weight 'regular)
 
 (defun dw/replace-unicode-font-mapping (block-name old-font new-font)
   (let* ((block-idx (cl-position-if
@@ -625,7 +625,7 @@
 ;;     (set-window-margins nil margin-size margin-size)))
 
 (defun dw/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 150
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
@@ -653,12 +653,15 @@
   "api" 'password-store-insert
   "apg" 'password-store-generate)
 
+(when (string= system-type "darwin")       
+  (setq dired-use-ls-dired nil))
+
 (use-package dired
   :ensure nil
   :defer 1
   :commands (dired dired-jump)
   :config
-  (setq dired-listing-switches "-agho --group-directories-first"
+  (setq dired-listing-switches "-lhvA --group-directories-first"
         dired-omit-files "^\\.[^.].*"
         dired-omit-verbose nil)
 
@@ -2129,3 +2132,6 @@
 
 ;; Make gc pauses faster by decreasing the threshold.
 (setq gc-cons-threshold (* 2 1000 1000))
+
+;; need this to make dired mode work on directory
+(setq-default dired-listing-switches "-lhvA")
