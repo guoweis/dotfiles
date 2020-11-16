@@ -119,8 +119,6 @@
    
    ;; "emacs-helpful"
    
-   "emacs-geiser"
-   
    "emacs-markdown-mode"
    
    "emacs-web-mode"

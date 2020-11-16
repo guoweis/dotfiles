@@ -49,10 +49,6 @@
 ;; (unless package-archive-contents
 ;;   (package-refresh-contents))
 
-;; Initialize use-package on non-Linux platforms
-;; (unless (or (package-installed-p 'use-package)
-;;            dw/is-guix-system)
-
 ;; If use-package isn't already installed, it's extremely likely that this is a
 ;; fresh installation! So we'll want to update the package repository and
 ;; install use-package before loading the literate configuration.
@@ -238,13 +234,13 @@
 (on-platform-do
  ((windows cygwin) (set-face-attribute 'default nil :font "Fira Mono:antialias=subpixel" :height 130))
   (osx (set-face-attribute 'default nil :font "Fira Mono" :height 170))
-  (linux (set-face-attribute 'default nil :font "Fira Code Retina" :height 120)))
+  (linux (set-face-attribute 'default nil :font "Fira Code Retina" :height 220)))
 
 ;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 200)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 135 :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 245 :weight 'regular)
 
 (defun dw/replace-unicode-font-mapping (block-name old-font new-font)
   (let* ((block-idx (cl-position-if
@@ -1400,10 +1396,6 @@
   :disabled
   :mode "\\.lisp\\'")
 
-;; Include .sld library definition files
-;; (use-package scheme-mode
-;;  :mode "\\.sld\\'")
-
 (use-package nvm
   :defer t)
 
@@ -1454,6 +1446,7 @@
 (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
 (use-package helpful
+  :ensure t
   :custom
   (counsel-describe-function-function #'helpful-callable)
   (counsel-describe-variable-function #'helpful-variable)
@@ -1470,19 +1463,6 @@
 (dw/leader-key-def
   :keymaps '(visual)
   "er" '(eval-region :which-key "eval region"))
-
-;; TODO: This causes issues for some reason.
-  ;; :bind (:map geiser-mode-map
-  ;;        ("TAB" . completion-at-point))
-
-;; (use-package geiser
-;;   :ensure t
-;;   :config
-;;   (setq geiser-default-implementation 'gambit)
-;;   (setq geiser-active-implementations '(gambit guile))
-;;   (setq geiser-repl-default-port 44555) ; For Gambit Scheme
-;;   (setq geiser-implementations-alist '(((regexp "\\.scm$") gambit)
-;;                                        ((regexp "\\.sld") gambit))))
 
 (use-package zig-mode
   :after lsp-mode
@@ -1534,9 +1514,9 @@
 
 ;; flycheck mode has to be manually installed here. this seems a
 ;; circular dependency for me.
-(use-package flycheck
-  :defer t
-  :hook (lsp-mode . flycheck-mode))
+  (use-package flycheck
+    :defer t
+    :hook (lsp-mode . flycheck-mode))
 
 (use-package yasnippet
   :hook (prog-mode . yas-minor-mode)
@@ -1627,15 +1607,11 @@
 (dw/leader-key-def
   "a"  '(:ignore t :which-key "apps"))
 
-;; TODO: Move this check elsewhere
-(setq dw/mail-enabled (string-equal system-name "zerocool"))
-
 (use-package mu4e
-  ;;:if (and (eq system-type 'gnu/linux) dw/mail-enabled)
 	:load-path "/usr/local/share/emacs/site-lisp/mu/mu4e"
   :config
   ;; After building/installing mu4e the .el files are here:
-  ;;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp") ;; On Fedora
+  ;;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e") ;; On Fedora
   ;;(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e") ;; On Manjaro / Arch
 
   (require 'org-mu4e)
